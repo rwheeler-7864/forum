@@ -11,7 +11,7 @@ class PasswordResetMailTests(TestCase):
         self.email = mail.outbox[0]
 
     def test_email_subject(self):
-        self.assertEqual('[Django Boards] Please reset your password', self.email.subject)
+        self.assertEqual('[Simple Forums] Please reset your password', self.email.subject)
 
     def test_email_body(self):
         context = self.response.context
