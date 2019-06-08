@@ -1,1 +1,6 @@
-.env/
+venv/
+.env
+db.sqlite3
+__pycache__
+*.pyc
+.vscode
