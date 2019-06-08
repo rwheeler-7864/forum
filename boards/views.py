@@ -14,7 +14,8 @@ from django.urls import resolve, reverse
 class BoardListView(ListView):
     model = Board
     context_object_name = 'boards'
-    template_name = 'home.html'
+    # template_name = 'home.html'
+    template_name = 'test.html'
 
 
 class TopicListView(ListView):
