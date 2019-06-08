@@ -28,7 +28,7 @@ SECRET_KEY = 's%rbbd&r3ay927kdgha4@y2e&exw&0=_13#b-n=bh-9yfmedgw'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['lingo-forum.herokuapp.com']
 
 
 # Application definition
