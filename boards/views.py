@@ -18,24 +18,25 @@ import datetime
 from django.contrib.auth import authenticate, login
 
 def send_email(useremail, promocode, topic_title, request):   
-    host_url = ''
-    if 'https' in request.build_absolute_uri():        
-        host_url = 'https://'
-    else :
-        host_url = 'http://'    
-    host_url = host_url + request.get_host() + '/e/' + str(promocode)
-    # print(host_url)
-    # return True
-    html_message = '<p>You can delete the post which title "{}" when you input this code. If you want to edit or delete, <a href="{}"> click here </a></p>'.format(topic_title, host_url)
-    plain_message = strip_tags(html_message)
-    return send_mail(
-        'New Forum Created',
-        plain_message,
-        'huangmingming2019@gmail.com',
-        [useremail],
-        html_message=html_message
-    )
-
+    # host_url = ''
+    # if 'https' in request.build_absolute_uri():        
+    #     host_url = 'https://'
+    # else :
+    #     host_url = 'http://'    
+    # host_url = host_url + request.get_host() + '/e/' + str(promocode)
+    # # print(host_url)
+    # # return True
+    # html_message = '<p>You can delete the post which title "{}" when you input this code. If you want to edit or delete, <a href="{}"> click here </a></p>'.format(topic_title, host_url)
+    # plain_message = strip_tags(html_message)
+    # return send_mail(
+    #     'New Forum Created',
+    #     plain_message,
+    #     'huangmingming2019@gmail.com',
+    #     [useremail],
+    #     html_message=html_message
+    # )
+    
+    return True
 class BoardListView(ListView):
     model = Board
     context_object_name = 'boards'
