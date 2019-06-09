@@ -32,7 +32,7 @@ def send_email(useremail, promocode, topic_title, request):
     return send_mail(
         'New Forum Created',
         plain_message,
-        'huangmingming2019@gmail.com',
+        'huang.ming.business@gmail.com',
         [useremail],
         html_message=html_message
     )
