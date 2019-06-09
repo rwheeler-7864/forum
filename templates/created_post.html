@@ -1,0 +1,23 @@
+{% extends 'base_accounts.html' %}
+
+{% block title %}Infom about Post{% endblock %}
+
+{% block content %}
+  <div class="row justify-content-center">
+    <div class="col-lg-8 col-md-10 col-sm-12">
+      <div class="card">
+        <div class="row">
+          <div class="col-12">
+            <p>You can delete the post which title "{{title}}" when you input this code. If you want to edit or delete, <a href="{{url_host}}"> click here </a></p>        
+            <p> secret url is {{url_host}}</p>        
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-12 text-right">
+            <a href="{%url 'topic_posts' board topic %}"><button class="btn btn-primary">OK</button></a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

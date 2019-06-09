@@ -18,17 +18,25 @@ import datetime
 from django.contrib.auth import authenticate, login
 from project import settings
 
-def send_email(useremail, promocode, topic_title, request):   
-    host_url = ''
+def get_link_url(promocode, request):   
+    host_url = ''    
     if 'https' in request.build_absolute_uri():        
         host_url = 'https://'
     else :
         host_url = 'http://'    
     host_url = host_url + request.get_host() + '/e/' + str(promocode)
+    return host_url
+
+def send_email_text(promocode, topic_title, request):   
+    host_url = get_link_url(promocode, request)
     html_message = '<p>You can delete the post which title "{}" when you input this code. If you want to edit or delete, <a href="{}"> click here </a></p>'.format(topic_title, host_url)
     plain_message = strip_tags(html_message)
+    return plain_message
+
+def send_email(useremail, promocode, topic_title, request):          
+    html_message = send_email_text(promocode, topic_title, request)
+    plain_message = strip_tags(html_message)
     print('###########################')
-    print(host_url)
     print(settings.SENDGRID_API_KEY)
     print('######################')
     return send_mail(
@@ -37,8 +45,7 @@ def send_email(useremail, promocode, topic_title, request):
         'huang.ming.business@gmail.com',
         [useremail],
         html_message=html_message
-    )
-    return True
+    )    
 class BoardListView(ListView):
     model = Board
     context_object_name = 'boards'
@@ -102,8 +109,8 @@ def new_topic(request, pk):
                 topic=topic,
                 created_by=request.user
             )
-            send_email(request.user.email, newpost.promocode, form.cleaned_data.get('subject'), request)
-            return redirect('topic_posts', pk=pk, topic_pk=topic.pk)
+            url_host = get_link_url(newpost.promocode, request)
+            return render(request, 'created_post.html', {'board': pk, 'topic':topic.pk, 'title': form.cleaned_data.get('subject'), 'url_host': url_host})            
     else:
         form = NewTopicForm()
     return render(request, 'new_topic.html', {'board': board, 'form': form})
@@ -125,7 +132,6 @@ def reply_topic(request, pk, topic_pk):
             post.topic = topic
             post.created_by = request.user
             post.save()
-            send_email(request.user.email, post.promocode, form.cleaned_data.get('subject'), request)
 
             topic.last_updated = timezone.now()
             topic.save()
@@ -135,8 +141,10 @@ def reply_topic(request, pk, topic_pk):
                 id=post.pk,
                 page=topic.get_page_count()
             )
-
-            return redirect(topic_post_url)
+            # send_email(request.user.email, post.promocode, form.cleaned_data.get('subject'), request)            
+            url_host = get_link_url(post.promocode, request)
+            return render(request, 'created_post.html', {'board': pk, 'topic':topic.pk, 'title': topic.subject, 'url_host': url_host})
+            # return redirect(topic_post_url)
     else:
         form = PostForm()
     return render(request, 'reply_topic.html', {'topic': topic, 'form': form})
@@ -159,6 +167,13 @@ class PostUpdateView(UpdateView):
         post.updated_at = timezone.now()
         post.save()
         return redirect('topic_posts', pk=post.topic.board.pk, topic_pk=post.topic.pk)
+
+@login_required
+def post_created_function(request, pk, topic_pk, post_pk):
+    post = Post.objects.get(pk=post_pk)
+    if post.created_by == request.user:
+        post.delete()
+    return redirect('topic_created', pk=pk, topic_pk=topic_pk)
 
 @login_required
 def post_delete_function(request, pk, topic_pk, post_pk):
