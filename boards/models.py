@@ -4,6 +4,8 @@ from django.utils.text import Truncator
 from django.utils.html import mark_safe
 from markdown import markdown
 import math
+import random
+import uuid
 
 
 class Board(models.Model):
@@ -55,7 +57,9 @@ class Post(models.Model):
     updated_at = models.DateTimeField(null=True)
     created_by = models.ForeignKey(User, on_delete = models.CASCADE, related_name='posts')
     updated_by = models.ForeignKey(User, on_delete = models.CASCADE, null=True, related_name='+')
-
+    promocode = models.CharField(max_length=100, blank=True, unique=True, default=uuid.uuid4)
+    
+    
     def __str__(self):
         truncated_message = Truncator(self.message)
         return truncated_message.chars(30)

@@ -36,6 +36,9 @@
                 <a href="{% url 'edit_post' post.topic.board.pk post.topic.pk post.pk %}"
                    class="btn btn-primary btn-sm"
                    role="button">Edit</a>
+                <a href="{% url 'delete_post' post.topic.board.pk post.topic.pk post.pk %}"
+                   class="btn btn-warning btn-sm"
+                   role="button">Delete</a>
               </div>
             {% endif %}
           </div>

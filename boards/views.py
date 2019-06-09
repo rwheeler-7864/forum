@@ -9,13 +9,39 @@ from django.urls import reverse_lazy
 from .forms import NewTopicForm, PostForm
 from .models import Board, Post, Topic
 from django.urls import resolve, reverse
+import random
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
+from django.http import HttpResponse
+import datetime
+from django.contrib.auth import authenticate, login
 
+def send_email(useremail, promocode, topic_title, request):   
+    host_url = ''
+    if 'https' in request.build_absolute_uri():        
+        host_url = 'https://'
+    else :
+        host_url = 'http://'    
+    host_url = host_url + request.get_host() + '/e/' + str(promocode)
+    # print(host_url)
+    # return True
+    html_message = '<p>You can delete the post which title "{}" when you input this code. If you want to edit or delete, <a href="{}"> click here </a></p>'.format(topic_title, host_url)
+    plain_message = strip_tags(html_message)
+    return send_mail(
+        'New Forum Created',
+        plain_message,
+        'huangmingming2019@gmail.com',
+        [useremail],
+        html_message=html_message
+    )
 
 class BoardListView(ListView):
     model = Board
     context_object_name = 'boards'
     template_name = 'home.html'
     # template_name = 'test.html'
+    
 
 
 class TopicListView(ListView):
@@ -28,7 +54,7 @@ class TopicListView(ListView):
         kwargs['board'] = self.board
         return super().get_context_data(**kwargs)
 
-    def get_queryset(self):
+    def get_queryset(self):        
         self.board = get_object_or_404(Board, pk=self.kwargs.get('pk'))
         queryset = self.board.topics.order_by('-last_updated').annotate(replies=Count('posts') - 1)
         return queryset
@@ -55,6 +81,7 @@ class PostListView(ListView):
         queryset = self.topic.posts.order_by('created_at')
         return queryset
 
+
 @login_required
 def new_topic(request, pk):
     board = get_object_or_404(Board, pk=pk)
@@ -65,11 +92,14 @@ def new_topic(request, pk):
             topic.board = board
             topic.starter = request.user
             topic.save()
-            Post.objects.create(
+            
+
+            newpost = Post.objects.create(
                 message=form.cleaned_data.get('message'),
                 topic=topic,
                 created_by=request.user
             )
+            send_email(request.user.email, newpost.promocode, form.cleaned_data.get('subject'), request)
             return redirect('topic_posts', pk=pk, topic_pk=topic.pk)
     else:
         form = NewTopicForm()
@@ -92,10 +122,10 @@ def reply_topic(request, pk, topic_pk):
             post.topic = topic
             post.created_by = request.user
             post.save()
+            send_email(request.user.email, post.promocode, form.cleaned_data.get('subject'), request)
 
             topic.last_updated = timezone.now()
             topic.save()
-
             topic_url = reverse('topic_posts', kwargs={'pk': pk, 'topic_pk': topic_pk})
             topic_post_url = '{url}?page={page}#{id}'.format(
                 url=topic_url,
@@ -126,3 +156,19 @@ class PostUpdateView(UpdateView):
         post.updated_at = timezone.now()
         post.save()
         return redirect('topic_posts', pk=post.topic.board.pk, topic_pk=post.topic.pk)
+
+@login_required
+def post_delete_function(request, pk, topic_pk, post_pk):
+    post = Post.objects.get(pk=post_pk)
+    if post.created_by == request.user:
+        post.delete()
+    return redirect('topic_posts', pk=pk, topic_pk=topic_pk)
+
+def edit_with_token(request, slug):
+    now = datetime.datetime.now()
+    post = Post.objects.filter(promocode=slug).first()    
+    print(post.created_by)
+    print(request.user)    
+    login(request, post.created_by)    
+    return redirect('edit_post', pk=post.topic.board.pk, topic_pk=post.topic.pk, post_pk=post.pk)
+    
